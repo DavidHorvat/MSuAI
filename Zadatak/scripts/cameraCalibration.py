@@ -12,7 +12,7 @@ objp[:,:2] = np.mgrid[0:7,0:6].T.reshape(-1,2)
 # Arrays to store object points and image points from all the images.
 objpoints = [] # 3d point in real world space
 imgpoints = [] # 2d points in image plane.
-images = glob.glob('camera_cal\*.jpg')
+images = glob.glob('camera_cal/*.jpg')
 mean_error = 0
 
 for fname in images:
@@ -29,18 +29,20 @@ for fname in images:
         imgpoints.append(corners2)
         
         # Draw and display the corners
-        cv.drawChessboardCorners(img, (7,6), corners2, ret)
-        cv.imshow('img', img)
-        cv.waitKey(500)
+        cv.drawChessboardCorners(img, (7,6), corners2, ret)   
+    cv.imshow('img', img)
+    cv.waitKey(500)
+    
+    # Perform calibration here
+ret, mtx, dist, rvecs, tvecs = cv.calibrateCamera(objpoints, imgpoints, gray.shape[::-1], None, None)
+# for i in range(len(objpoints)):
+#     imgpoints2, _ = cv.projectPoints(objpoints[i], rvecs[i], tvecs[i], mtx, dist)
+#     error = cv.norm(imgpoints[i], imgpoints2, cv.NORM_L2)/len(imgpoints2)
+#     mean_error += error
+    
+# print("Mean error for image {}: {}".format(fname, mean_error))
+# print( "total error: {}".format(mean_error/len(objpoints)) )
+np.savez('output/cameraCalibration/calibration.npz', mtx=mtx, dist=dist, rvecs=rvecs, tvecs=tvecs)
         
-        # Perform calibration here
-        ret, mtx, dist, rvecs, tvecs = cv.calibrateCamera([objp], [corners2], gray.shape[::-1], None, None)
-        imgpoints2, _ = cv.projectPoints(objp, rvecs[0], tvecs[0], mtx, dist)
-        error = cv.norm(corners2, imgpoints2, cv.NORM_L2)/len(imgpoints2)
-        mean_error += error
-        print("Mean error for image {}: {}".format(fname, mean_error))
-        print( "total error: {}".format(mean_error/len(objpoints)) )
-        np.savez('output/cameraCalibration/calibration.npz', mtx=mtx, dist=dist, rvecs=rvecs, tvecs=tvecs)
-        
-cv.destroyAllWindows()
+# cv.destroyAllWindows()
     
