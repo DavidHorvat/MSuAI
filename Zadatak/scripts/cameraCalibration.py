@@ -1,5 +1,6 @@
 import numpy as np
 import cv2 as cv
+import matplotlib.pyplot as plt
 import glob
 
 # termination criteria
@@ -47,6 +48,60 @@ for i in range(len(objpoints)):
     
 print( "total error: {}".format(mean_error/len(objpoints)) )
 
-np.savez('output/cameraCalibration/calibration.npz', mtx=mtx, dist=dist, rvecs=rvecs, tvecs=tvecs)
+
+
+# Undistort the first image from the folder and save the pair as an image
+fname = images[0]  # Selecting the first image
+img = cv.imread(fname)
+h,  w = img.shape[:2]
+newcameramtx, roi = cv.getOptimalNewCameraMatrix(mtx, dist, (w,h), 1, (w,h))
+
+# undistort
+dst = cv.undistort(img, mtx, dist, None, newcameramtx)
+# crop the image
+x, y, w, h = roi
+dst = dst[y:y+h, x:x+w]
+
+# Ensure both images have the same height before concatenating
+h_min = min(img.shape[0], dst.shape[0])
+img = img[:h_min, :]
+dst = dst[:h_min, :]
+
+# Save the pair of images as a single image
+pair_image = np.hstack((img, dst))
+cv.imwrite('output/cameraCalibration/examplePair.png', pair_image)
+
+# Undistort all images from the folder
+for fname in images:
+    img = cv.imread(fname)
+    h,  w = img.shape[:2]
+    newcameramtx, roi = cv.getOptimalNewCameraMatrix(mtx, dist, (w,h), 1, (w,h))
+
+    # undistort
+    dst = cv.undistort(img, mtx, dist, None, newcameramtx)
+    # crop the image
+    x, y, w, h = roi
+    dst = dst[y:y+h, x:x+w]
+
+    # Display the original and undistorted images
+    fig, axes = plt.subplots(1, 2, figsize=(12, 6))
+
+    # Plot original image
+    axes[0].imshow(cv.cvtColor(img, cv.COLOR_BGR2RGB))
+    axes[0].set_title('Original Image')
+
+    # Plot undistorted image
+    axes[1].imshow(cv.cvtColor(dst, cv.COLOR_BGR2RGB))
+    axes[1].set_title('Undistorted Image')
+
+    # Hide axes
+    for ax in axes:
+        ax.axis('off')
+
+    plt.pause(2)  # Pause for 2 seconds before showing the next pair of images
+
+    # Close the current figure to show the next pair of images
+    plt.close(fig)
+
 cv.destroyAllWindows()
     
