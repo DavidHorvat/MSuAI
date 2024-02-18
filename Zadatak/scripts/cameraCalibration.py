@@ -41,14 +41,14 @@ for fname in images:
 # Perform calibration here
 ret, mtx, dist, rvecs, tvecs = cv.calibrateCamera(objpoints, imgpoints, gray.shape[::-1], None, None)
 
+np.savez('output/cameraCalibration/calibration.npz', mtx=mtx, dist=dist, rvecs=rvecs, tvecs=tvecs)
+
 for i in range(len(objpoints)):
     imgpoints2, _ = cv.projectPoints(objpoints[i], rvecs[i], tvecs[i], mtx, dist)
     error = cv.norm(imgpoints[i], imgpoints2, cv.NORM_L2)/len(imgpoints2)
     mean_error += error
     
 print( "total error: {}".format(mean_error/len(objpoints)) )
-
-
 
 # Undistort the first image from the folder and save the pair as an image
 fname = images[0]  # Selecting the first image
@@ -75,10 +75,11 @@ cv.imwrite('output/cameraCalibration/examplePair.png', pair_image)
 for fname in images:
     img = cv.imread(fname)
     h,  w = img.shape[:2]
-    newcameramtx, roi = cv.getOptimalNewCameraMatrix(mtx, dist, (w,h), 1, (w,h))
+    newcameramtx, roi = cv.getOptimalNewCameraMatrix(mtx, dist, (w,h), 0, (w,h))
 
     # undistort
     dst = cv.undistort(img, mtx, dist, None, newcameramtx)
+    
     # crop the image
     x, y, w, h = roi
     dst = dst[y:y+h, x:x+w]
