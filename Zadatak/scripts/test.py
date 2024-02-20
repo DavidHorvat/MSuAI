@@ -24,17 +24,14 @@ def main():
     calibration = np.load('output/cameraCalibration/calibration.npz')
     mtx = calibration['mtx']
     dist = calibration['dist']
-    images = glob.glob('test_images/*.jpg')
-    img = cv.imread('test_images/test6.jpg')
-    for fname in images:
-        img = cv.imread(fname)        
+    cap = cv.VideoCapture('test_videos/challenge03.mp4')
+  
+    while(cap.isOpened()):
+        ret, img = cap.read()
+        if not ret:
+            break
         assert img is not None, "file could not be read, check with os.path.exists()"
-        height, width, channels = img.shape
-        # Print the shape
-        print("Height:", height)
-        print("Width:", width)
-        print("Channels:", channels)
-        
+          
         img_size = (img.shape[1], img.shape[0])
         src = np.float32(
         [[(img_size[0] / 2) - 55, img_size[1] / 2 + 100],
@@ -56,18 +53,18 @@ def main():
         canny = imageProcessingMethods.cannyTransformation(thresh,canny_t1,canny_t2)
         lines = imageProcessingMethods.houghLines(canny, rho, theta, hough_t, min_line_length, max_line_gap) 
         
-        cv.imshow('Original Image', img)
-        cv.waitKey(0)
-        cv.imshow('HSV Image(warped)', hsvImage)
-        cv.waitKey(0)
-        cv.imshow('Gray Image(warped)', gray)
-        cv.waitKey(0)
+        # cv.imshow('Original Image', img)
+        # cv.waitKey(0)
+        # cv.imshow('HSV Image(warped)', hsvImage)
+        # cv.waitKey(0)
+        # cv.imshow('Gray Image(warped)', gray)
+        # cv.waitKey(0)
         
-        for points in lines:
-            x1, y1, x2, y2 = np.array(points[0])
-            cv.line(warped, (x1, y1), (x2, y2), (0, 0, 255), 2) 
-            cv.imshow('HSV Image(warped) with Hough lines', warped)
-        cv.waitKey(0)
+        # for points in lines:
+        #     x1, y1, x2, y2 = np.array(points[0])
+        #     cv.line(warped, (x1, y1), (x2, y2), (0, 0, 255), 2) 
+        #     cv.imshow('HSV Image(warped) with Hough lines', warped)
+        # cv.waitKey(0)
 
     # Assuming you have the binary_warped image from your perspective transform
         left_fit, right_fit = laneDetection.fit_polynomial(canny)
@@ -120,8 +117,11 @@ def main():
         result = cv.addWeighted(undistorted, 1, newwarp_cropped, 0.3, 0)
         
         cv.imshow('Final result', result)
-        cv.waitKey(0)            
-    
+        if cv.waitKey(1) == ord('q'):
+            break
+    cap.release()
+    cv.destroyAllWindows()           
+
 main()
 
 
