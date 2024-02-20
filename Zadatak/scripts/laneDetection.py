@@ -1,8 +1,6 @@
 import numpy as np
 
 def fit_polynomial(binary_warped):
-    # Assuming 'binary_warped' is the binary image after thresholding and perspective transform
-
     # Identify the x and y positions of all nonzero pixels in the image
     nonzero = binary_warped.nonzero()
     nonzeroy = np.array(nonzero[0])
@@ -84,7 +82,6 @@ def fit_polynomial(binary_warped):
     right_fit = np.polyfit(righty, rightx, 2)
     
     return left_fit, right_fit
-
 
 def measure_curvature_real(binary_warped,left_fit, right_fit):
     # Define conversions in x and y from pixels space to meters
