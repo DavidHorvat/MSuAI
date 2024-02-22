@@ -7,6 +7,8 @@ import cv2 as cv
 import math as math
 import glob as glob
 import matplotlib.pyplot as plt
+import os as os
+
 
 """Constant parameters"""
 CANNY_T1 = 50
@@ -30,22 +32,40 @@ def testImages():
         img = cv.imread(fname)        
         assert img is not None, "file could not be read, check with os.path.exists()"
         height, width, channels = img.shape
-        # Print the shape
+
         print("Height:", height)
         print("Width:", width)
         print("Channels:", channels)
         
-        img_size = (img.shape[1], img.shape[0])
-        src = np.float32(
-        [[(img_size[0] / 2) - 55, img_size[1] / 2 + 100],
-        [((img_size[0] / 6) - 10), img_size[1]],
-        [(img_size[0] * 5 / 6) + 60, img_size[1]],
-        [(img_size[0] / 2 + 55), img_size[1] / 2 + 100]])
-        dst = np.float32(
-        [[(img_size[0] / 4), 0],
-        [(img_size[0] / 4), img_size[1]],
-        [(img_size[0] * 3 / 4), img_size[1]],
-        [(img_size[0] * 3 / 4), 0]])
+        if img.shape == (540, 960, 3):
+            print("prvi if")
+            src = np.float32(
+                [[480, 342],
+                 [260, 540],
+                 [800, 540],
+                 [557, 342]
+                 ])
+            dst = np.float32(
+                [[264, 0],
+                 [264, 540],
+                 [831, 540],
+                 [831, 0]
+                 ])
+
+        elif img.shape == (720, 1280, 3):
+            print("drugi if")
+            src = np.float32(
+                [[587, 464],
+                 [383, 695],
+                 [1030, 695],
+                 [718, 464],
+                 ])
+            dst = np.float32(
+                [[320, 0],
+                 [320, 720],
+                 [960, 720],
+                 [960, 0]
+                 ])
 
         undistortedImage = imageProcessingMethods.undistortImage(img, mtx, dist)
         hsvImage = imageProcessingMethods.hsv(undistortedImage)
@@ -56,11 +76,16 @@ def testImages():
         cannyImage = imageProcessingMethods.cannyTransformation(thresholdImage,CANNY_T1,CANNY_T2)
         lines = imageProcessingMethods.houghLines(cannyImage, RHO, THETA, HOUGH_T, MIN_LINE_GAP, MAX_LINE_GAP) 
         
+        polygon_dst = dst.astype(np.int32).reshape((-1, 1, 2))
+        cv.polylines(warpedImage, [polygon_dst], isClosed=True, color=(0, 0, 255), thickness=2)
+        cv.imshow('Original Image test', warpedImage)
+        cv.waitKey(0)
+        
         cv.imshow('Original Image', img)
         cv.waitKey(0)
         cv.imshow('HSV Image(warped)', hsvImage)
         cv.waitKey(0)
-        cv.imshow('Gray Image(warped)', grayImage)
+        cv.imshow('After threshold(warped)', thresholdImage)
         cv.waitKey(0)
         
         for points in lines:
@@ -120,7 +145,15 @@ def testImages():
         result = cv.addWeighted(undistortedImage, 1, newwarp_cropped, 0.3, 0)
         
         cv.imshow('Final result', result)
-        cv.waitKey(0)            
+        cv.waitKey(0)     
+        
+        output_dir = 'output/imageProcessing/'
+        os.makedirs(output_dir, exist_ok=True)
+
+        for i, processed_image in enumerate([undistortedImage, hsvImage, grayImage, warpedImage, result]):
+            output_path = os.path.join(output_dir, f'{os.path.basename(fname)}_processed_{i}.jpg')
+            cv.imwrite(output_path, processed_image)
+            print(f"Processed image saved to: {output_path}")       
 
 
 
