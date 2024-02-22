@@ -21,7 +21,8 @@ Prroject consists out of few files:
     videoProcessing.py
     main.py
 
-Throughout the documentation it will be explained the purpose of each file
+Throughout the documentation it will be explained the purpose of each file.
+Project is started by positioning in folder Zadatak and running the main.py file. After that user has to choose if images or videos are going to be processed.
 
 ### Camera Calibration
 
